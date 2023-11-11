@@ -19,10 +19,14 @@ public:
       }
     }
 
-    bool playing = true;
+    bool playing = true, invalid = false;
     std::string move;
     while(playing){
       board.display();
+      if(invalid) {
+        std::cout << "\033[41m!INVALID MOVE! \033[0m" << std::endl;
+        invalid = false;
+      }
       if(whitesTurn) {
         std::cout << board.WHITE_BACKGROUND_COLOR << board.BLACK_COLOR_CODE << "White";
       }
@@ -31,7 +35,24 @@ public:
       }
       std::cout << ">> ";
       std::cin >> move;
+      bool turn = (notation == 1)?this->processChessNotation(move, whitesTurn) : this->processAlgebraicNotation(move, whitesTurn);
+      if(!turn) invalid = true;
+      else whitesTurn = !whitesTurn;
     }
+  }
+  bool processChessNotation(std::string inp, bool white) {
+    return true;
+  }
+  bool processAlgebraicNotation(std::string inp, bool white) {
+    if(inp.length() != 4) return false;
+    int s1 = inp[0] - 'a';
+    int s0 = 8 - (inp[1] - '0');
+    int d1 = inp[2] - 'a';
+    int d0 = 8 - (inp[3] - '0');
+
+    if(s0 < 0 || s0 > 7 || s1 < 0 || s1 > 7 ||d0 < 0 || d0 > 7 || d1 < 0 || d1 > 7) return false;
+
+    return this->board.move(s0,s1,d0,d1, white);
   }
 };
 

@@ -42,7 +42,6 @@ public:
   void display() {
     std::cout << CLEAR_SCREEN << std::endl;
     std::cout << BACKGROUND_BORDER_COLOR << GRAY_TEXT_COLOR << "   a  b  c  d  e  f  g  h   " << std::endl;
-    // std::cout << border << "|                          |" << std::endl;
     for(int i = 0; i < 8; i++) {
       std::cout << GRAY_TEXT_COLOR << 8 - i << " " ;
       for(int j = 0; j < 8; j++) {
@@ -61,14 +60,17 @@ public:
       std::cout << BACKGROUND_BORDER_COLOR;
       std::cout << "  " << std::endl;
     }
-    // std::cout << border << "|                          |" << std::endl;
     std::cout << "                            \033[0m" << std::endl;
     std::cout << std::endl;
   }
 
-  void move(int src[2], int dest[2]) {
-    Piece *tmp = this->pieces[src[0]][src[1]];
-    this->pieces[src[0]][src[1]] = this->pieces[dest[0]][dest[1]];
-    this->pieces[dest[0]][dest[1]] = tmp;
+  bool move(int s0, int s1, int d0, int d1, bool white) {
+    if(!this->pieces[s0][s1]) return false;
+    if(this->pieces[s0][s1]->white != white) return false;
+
+    Piece *tmp = this->pieces[s0][s1];
+    this->pieces[s0][s1] = this->pieces[d0][d1];
+    this->pieces[d0][d1] = tmp;
+    return true;
   }
 };
