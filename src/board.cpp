@@ -3,6 +3,17 @@
 
 class Board {
 public:
+  // Escape codes constants
+  const std::string WHITE_COLOR_CODE = "\033[37m";
+  const std::string BLACK_COLOR_CODE = "\033[30m";
+  const std::string WHITE_BACKGROUND_COLOR = "\033[47m";
+  const std::string BLACK_BACKGROUND_COLOR = "\033[40m";
+  const std::string GRAY_TEXT_COLOR = "\033[90m";
+  const std::string BACKGROUND_PRIMARY_COLOR = "\033[0;38;2;194;178;128;48;2;194;178;128m";
+  const std::string BACKGROUND_SECONDARY_COLOR = "\033[0;38;2;0;128;0;48;2;0;128;0m";
+  const std::string BACKGROUND_BORDER_COLOR = "\033[48;2;75;20;5m";
+  const std::string CLEAR_SCREEN = "\033c";
+
   Piece* pieces[8][8];
 
   Board() {
@@ -29,24 +40,35 @@ public:
   }
 
   void display() {
-    std::cout << std::endl;
-    std::cout << "\033[35m /-----------------\\" << std::endl;
+    std::cout << CLEAR_SCREEN << std::endl;
+    std::cout << BACKGROUND_BORDER_COLOR << GRAY_TEXT_COLOR << "   a  b  c  d  e  f  g  h   " << std::endl;
+    // std::cout << border << "|                          |" << std::endl;
     for(int i = 0; i < 8; i++) {
-      std::cout << "\033[35m | ";
+      std::cout << GRAY_TEXT_COLOR << 8 - i << " " ;
       for(int j = 0; j < 8; j++) {
+        if((i+j)%2 == 0) std::cout << BACKGROUND_PRIMARY_COLOR;
+        else std::cout << BACKGROUND_SECONDARY_COLOR;
         if(pieces[i][j]) {
           if(pieces[i][j]->white) {
-            std::cout << "\033[36m";
+            std::cout << WHITE_COLOR_CODE;
           } else {
-            std::cout << "\033[32m";
+            std::cout << BLACK_COLOR_CODE;
           }
-          std::cout << pieces[i][j]->symbol << " ";
+          std::cout << " " << pieces[i][j]->symbol << " ";
         }
-        else std::cout << "\033[90m- ";
+        else std::cout << "   ";
       }
-      std::cout << "\033[35m|" << std::endl;
+      std::cout << BACKGROUND_BORDER_COLOR;
+      std::cout << "  " << std::endl;
     }
-    std::cout << " \\-----------------/" << std::endl;
+    // std::cout << border << "|                          |" << std::endl;
+    std::cout << "                            \033[0m" << std::endl;
     std::cout << std::endl;
+  }
+
+  void move(int src[2], int dest[2]) {
+    Piece *tmp = this->pieces[src[0]][src[1]];
+    this->pieces[src[0]][src[1]] = this->pieces[dest[0]][dest[1]];
+    this->pieces[dest[0]][dest[1]] = tmp;
   }
 };
