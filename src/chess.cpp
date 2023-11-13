@@ -5,6 +5,8 @@ private:
   Board board;
   bool whitesTurn = true;
   int notation = 2;
+  std::vector<Piece*> capturedWhite;
+  std::vector<Piece*> capturedBlack;
 public:
   void play() {
     while(notation < 1 || notation > 2){
@@ -26,11 +28,22 @@ public:
         std::cout << "\033[41m!INVALID MOVE! \033[0m" << std::endl;
         invalid = false;
       }
+      std::cout << board.BLACK_BACKGROUND_COLOR << board.WHITE_COLOR_CODE;
+      for(auto p: this->capturedWhite) {
+        std::cout << " [" << p->symbol << "] ";
+      }
+      std::cout << std::endl;
+      std::cout << board.WHITE_BACKGROUND_COLOR << board.BLACK_COLOR_CODE;
+      for(auto p: this->capturedBlack) {
+        std::cout << " [" << p->symbol << "] ";
+      }
+      std::cout << std::endl;
+      std::cout << std::endl;
       if(whitesTurn) {
-        std::cout << board.WHITE_BACKGROUND_COLOR << board.BLACK_COLOR_CODE << "White";
+        std::cout << board.BLACK_BACKGROUND_COLOR << board.WHITE_COLOR_CODE << "White";
       }
       else {
-        std::cout << board.BLACK_BACKGROUND_COLOR << board.WHITE_COLOR_CODE << "Black";
+        std::cout << board.WHITE_BACKGROUND_COLOR << board.BLACK_COLOR_CODE << "Black";
       }
       std::cout << ">> ";
       std::cin >> move;
@@ -51,7 +64,12 @@ public:
 
     if(s0 < 0 || s0 > 7 || s1 < 0 || s1 > 7 ||d0 < 0 || d0 > 7 || d1 < 0 || d1 > 7) return false;
 
-    return this->board.move(s0,s1,d0,d1, white);
+    Piece* cap = this->board.move(s0,s1,d0,d1, white);
+    if(cap && cap->white != white) {
+      if(white) this->capturedBlack.push_back(cap);
+      else this->capturedWhite.push_back(cap);
+    }
+    return cap;
   }
 };
 

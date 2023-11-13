@@ -64,13 +64,33 @@ public:
     std::cout << std::endl;
   }
 
-  bool move(int s0, int s1, int d0, int d1, bool white) {
-    if(!this->pieces[s0][s1]) return false;
-    if(this->pieces[s0][s1]->white != white) return false;
+  Piece* move(int s0, int s1, int d0, int d1, bool white) {
+    if(!this->pieces[s0][s1]) return nullptr;
+    if(this->pieces[s0][s1]->white != white) return nullptr;
 
-    Piece *tmp = this->pieces[s0][s1];
-    this->pieces[s0][s1] = this->pieces[d0][d1];
-    this->pieces[d0][d1] = tmp;
-    return true;
+    std::vector<std::vector<std::pair<int,int>>> range;
+    Piece* ret;
+
+    if(this->pieces[d0][d1]) {
+      //capture move
+      if(this->pieces[d0][d1]->white == white) return nullptr;
+      range = this->pieces[s0][s1]->getCaptureRange({s0,s1});
+      ret = this->pieces[d0][d1];
+    } else {
+      //normal move
+      ret = this->pieces[s0][s1];
+      range = this->pieces[s0][s1]->getMovementRange({s0,s1});
+    }
+    for(const auto direction: range) {
+      for(auto pos: direction) {
+        if(pos.first == d0 && pos.second == d1) {
+          this->pieces[d0][d1] = this->pieces[s0][s1];
+          this->pieces[s0][s1] = nullptr;
+          return ret;
+        }
+        if(this->pieces[pos.first][pos.second]) break;
+      }
+    }
+    return nullptr;
   }
 };
