@@ -1,11 +1,10 @@
 #include "board.cpp"
-#include <cstdio>
 
 class Chess {
 private:
   Board board;
   bool whitesTurn = true;
-  int notation = 0;
+  int notation = 2;
 public:
   void play() {
     while(notation < 1 || notation > 2){
