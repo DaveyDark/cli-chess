@@ -5,30 +5,18 @@
 class Board {
 private:
   Piece* pieces[8][8];
-  bool isChecked(bool white) {
-    int king0, king1;
+  std::pair<int,int> locatePiece(char symbol, bool white) {
+    std::pair<int,int> *pos;
     for(int i=0; i<8; i++) {
       for(int j=0; j<8; j++) {
         if(!this->pieces[i][j]) continue;
-        if(this->pieces[i][j]->white == white && tolower(this->pieces[i][j]->symbol) == 'k'){
-          king0 = i;
-          king1 = j;
+        if(this->pieces[i][j]->white == white && tolower(this->pieces[i][j]->symbol) == symbol){
+          pos = new std::pair(i,j);
         }
       }
     }
-
-    for(int i=0; i<8; i++) {
-      for(int j=0; j<8; j++) {
-        if(!this->pieces[i][j]) continue;
-        if(this->pieces[i][j]->white != white){
-          if(this->isInRange({king0,king1}, this->pieces[i][j]->getCaptureRange({i,j}))) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
+    if(pos) return *pos;
+    return {-1,-1};
   }
 
   bool isInRange(std::pair<int,int> p, std::vector<std::vector<std::pair<int,int>>> range) {
@@ -92,7 +80,8 @@ public:
         if(this->pieces[i][j]) {
           if(tolower(this->pieces[i][j]->symbol) == 'k' && this->isChecked(this->pieces[i][j]->white)){
             std::cout << RED_BACKGROUND;
-          } else if(this->pieces[i][j]->white) {
+          } 
+          if(this->pieces[i][j]->white) {
             std::cout << WHITE_COLOR_CODE;
           } else {
             std::cout << BLACK_COLOR_CODE;
@@ -108,9 +97,9 @@ public:
     std::cout << std::endl;
   }
 
-  Piece* move(int s0, int s1, int d0, int d1, bool white) {
-    if(!this->pieces[s0][s1]) return nullptr;
-    if(this->pieces[s0][s1]->white != white) return nullptr;
+  bool tryMove(int s0, int s1, int d0, int d1, bool white) {
+    if(!this->pieces[s0][s1]) return false;
+    if(this->pieces[s0][s1]->white != white) return false;
 
     std::vector<std::vector<std::pair<int,int>>> range;
     Piece* ret;
@@ -119,7 +108,7 @@ public:
     if(this->pieces[d0][d1]) {
       //capture move
       capture = true;
-      if(this->pieces[d0][d1]->white == white) return nullptr;
+      if(this->pieces[d0][d1]->white == white) return false;
       range = this->pieces[s0][s1]->getCaptureRange({s0,s1});
       ret = this->pieces[d0][d1];
     } else {
@@ -130,14 +119,77 @@ public:
     if(this->isInRange({d0,d1}, range)) {
       this->pieces[d0][d1] = this->pieces[s0][s1];
       this->pieces[s0][s1] = nullptr;
-      if(this->isChecked(white)) {
-        this->pieces[s0][s1] = this->pieces[d0][d1];
-        if(capture) this->pieces[d0][d1] = ret;
-        else this->pieces[d0][d1] = nullptr;
-        return nullptr;
-      } else return ret;
+      bool check = this->isChecked(white);
+      this->pieces[s0][s1] = this->pieces[d0][d1];
+      if(capture) this->pieces[d0][d1] = ret;
+      else this->pieces[d0][d1] = nullptr;
+      if(check) return false;
+      else return true;
+    }
+    return false;
+  }
+
+  Piece* move(int s0, int s1, int d0, int d1, bool white) {
+    if (this->tryMove(s0, s1, d0, d1, white)) {
+      if(this->pieces[d0][d1]) {
+        //capture
+        Piece* ret = this->pieces[d0][d1];
+        this->pieces[d0][d1] = this->pieces[s0][s1];
+        this->pieces[s0][s1] = nullptr;
+        return ret;
+      } else {
+        this->pieces[d0][d1] = this->pieces[s0][s1];
+        this->pieces[s0][s1] = nullptr;
+        return this->pieces[d0][d1];
+      }
     }
     return nullptr;
   }
 
+  bool isChecked(bool white) {
+    std::pair<int,int> king = this->locatePiece('k',white);
+
+    for(int i=0; i<8; i++) {
+      for(int j=0; j<8; j++) {
+        if(!this->pieces[i][j]) continue;
+        if(this->pieces[i][j]->white != white){
+          if(this->isInRange(king, this->pieces[i][j]->getCaptureRange({i,j}))) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  bool isCheckMate(bool white) {
+    std::pair<int,int> king = this->locatePiece('k',white);
+    for(int i=0; i<8; i++) {
+      for(int j=0; j<8; j++) {
+        if(this->pieces[i][j] && this->pieces[i][j]->white == white) {
+          std::vector<std::vector<std::pair<int,int>>> range = this->pieces[i][j]->getMovementRange({i,j});
+          std::vector<std::pair<int,int>> possibleMoves;
+          for(const auto direction: range) {
+            for(auto pos: direction) {
+              possibleMoves.push_back(pos);
+              if(this->pieces[pos.first][pos.second]) break;
+            }
+          }
+          if(tolower(this->pieces[i][j]->symbol) == 'p') {
+            for(const auto direction: this->pieces[i][j]->getCaptureRange({i,j})) {
+              for(auto pos: direction) {
+                possibleMoves.push_back(pos);
+                if(this->pieces[pos.first][pos.second]) break;
+              }
+            }
+          }
+          for(const auto move: possibleMoves) {
+            if(this->tryMove(i, j, move.first, move.second, white)) return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
 };
