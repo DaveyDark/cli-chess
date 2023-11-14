@@ -114,9 +114,11 @@ public:
 
     std::vector<std::vector<std::pair<int,int>>> range;
     Piece* ret;
+    bool capture = false;
 
     if(this->pieces[d0][d1]) {
       //capture move
+      capture = true;
       if(this->pieces[d0][d1]->white == white) return nullptr;
       range = this->pieces[s0][s1]->getCaptureRange({s0,s1});
       ret = this->pieces[d0][d1];
@@ -128,7 +130,12 @@ public:
     if(this->isInRange({d0,d1}, range)) {
       this->pieces[d0][d1] = this->pieces[s0][s1];
       this->pieces[s0][s1] = nullptr;
-      return ret;
+      if(this->isChecked(white)) {
+        this->pieces[s0][s1] = this->pieces[d0][d1];
+        if(capture) this->pieces[d0][d1] = ret;
+        else this->pieces[d0][d1] = nullptr;
+        return nullptr;
+      } else return ret;
     }
     return nullptr;
   }
