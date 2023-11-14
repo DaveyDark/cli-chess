@@ -1,4 +1,5 @@
 #include <cctype>
+#include <cstdlib>
 #include <iostream>
 #include "piece.cpp"
 
@@ -29,6 +30,49 @@ private:
       }
     }
     return false;
+  }
+
+  void promote(std::pair<int,int> pos) {
+    if(tolower(this->pieces[pos.first][pos.second]->symbol) != 'p') return;
+    if(this->pieces[pos.first][pos.second]->white && pos.first != 1) return;
+    else if(!this->pieces[pos.first][pos.second]->white && pos.first != 6) return;
+
+    char choice = 'a';
+    Piece *newPiece;
+    while(choice != 'q' && choice != 'r' && choice != 'b' && choice != 'n') {
+      std::cout << "Enter piece to promote pawn to:" << std::endl;
+      std::cout << "q - Queen" << std::endl;
+      std::cout << "r - Rook" << std::endl;
+      std::cout << "b - Bishop" << std::endl;
+      std::cout << "n - Knight" << std::endl;
+      std::cout << ">> ";
+      std::cin >> choice;
+
+      switch(choice) {
+        case 'q':
+          newPiece = new Queen(this->pieces[pos.first][pos.second]->white);
+          delete this->pieces[pos.first][pos.second];
+          this->pieces[pos.first][pos.second] = newPiece;
+          break;
+        case 'r':
+          newPiece = new Rook(this->pieces[pos.first][pos.second]->white);
+          delete this->pieces[pos.first][pos.second];
+          this->pieces[pos.first][pos.second] = newPiece;
+          break;
+        case 'b':
+          newPiece = new Bishop(this->pieces[pos.first][pos.second]->white);
+          delete this->pieces[pos.first][pos.second];
+          this->pieces[pos.first][pos.second] = newPiece;
+          break;
+        case 'n':
+          newPiece = new Knight(this->pieces[pos.first][pos.second]->white);
+          delete this->pieces[pos.first][pos.second];
+          this->pieces[pos.first][pos.second] = newPiece;
+          break;
+        default:
+          std::cout << "Invalid choice" << std::endl;
+      }
+    }
   }
 
 public:
@@ -101,6 +145,17 @@ public:
     if(!this->pieces[s0][s1]) return false;
     if(this->pieces[s0][s1]->white != white) return false;
 
+    if(tolower(this->pieces[s0][s1]->symbol) == 'p') {
+      if((this->pieces[s0][s1]->white && s0 == 3) || (!this->pieces[s0][s1]->white && s0 == 4)) {
+        if(tolower(this->pieces[s0][d1]->symbol) == 'p') {
+          Pawn* pawn = (Pawn*)this->pieces[s0][d1];
+          if(pawn->enPassantAble && !this->pieces[d0][d1]) {
+            return true;
+          }
+        }
+      }
+    }
+
     std::vector<std::vector<std::pair<int,int>>> range;
     Piece* ret;
     bool capture = false;
@@ -131,6 +186,39 @@ public:
 
   Piece* move(int s0, int s1, int d0, int d1, bool white) {
     if (this->tryMove(s0, s1, d0, d1, white)) {
+      if(tolower(this->pieces[s0][s1]->symbol) == 'p') {
+        Pawn* pawn = (Pawn*)this->pieces[s0][s1];
+        if(!pawn->moved) {
+          pawn->moved = true;
+          pawn->enPassantAble = true;
+        }
+
+        if(!this->pieces[d0][d1] && tolower(this->pieces[s0][d1]->symbol) == 'p' && s0 != d0) {
+          // en passant
+          Pawn* pwn = (Pawn*)this->pieces[s0][d1];
+          if(pwn->white != white && pwn->enPassantAble) {
+            Piece* ret = this->pieces[s0][d1];
+            this->pieces[d0][d1] = this->pieces[s0][s1];
+            this->pieces[s0][s1] = nullptr;
+            this->pieces[s0][d1] = nullptr;
+            return ret;
+          }
+        }
+
+        this->promote({s0,s1});
+      }
+
+      for(int i=0; i<8; i++) {
+        for(int j=0; j<8; j++) {
+          if(this->pieces[i][j] && tolower(this->pieces[i][j]->symbol) == 'p') {
+            Pawn* pawn = (Pawn*)this->pieces[i][j];
+            if(pawn->white != white && pawn->enPassantAble) {
+              pawn->enPassantAble = false;
+            }
+          }
+        }
+      }
+      
       if(this->pieces[d0][d1]) {
         //capture
         Piece* ret = this->pieces[d0][d1];

@@ -6,6 +6,7 @@ public:
   char symbol;
   bool white;
   Piece(bool w, char s): white(w), symbol(s) {}
+  virtual ~Piece() = default;
   virtual std::vector<std::vector<std::pair<int,int>>> getRange(std::pair<int,int> pos) = 0;
   virtual std::vector<std::vector<std::pair<int,int>>> getMovementRange(std::pair<int,int> pos) {
     return this->getRange(pos);
@@ -116,9 +117,9 @@ public:
 };
 
 class Pawn: public Piece {
-private:
-  bool moved = false;
 public:
+  bool moved = false;
+  bool enPassantAble = false;
   Pawn(bool w): Piece(w, w?'P':'p') {}
 
   std::vector<std::vector<std::pair<int,int>>> getRange(std::pair<int,int> pos) {
@@ -131,14 +132,12 @@ public:
       if(moved) {
         return {{std::pair(pos.first-1, pos.second)}};
       } else {
-        this->moved = true;
         return {{std::pair(pos.first-1, pos.second), std::pair(pos.first-2, pos.second)}};
       }
     } else {
       if(moved) {
         return {{std::pair(pos.first+1, pos.second)}};
       } else {
-        this->moved = true;
         return {{std::pair(pos.first+1, pos.second), std::pair(pos.first+2, pos.second)}};
       }
     }
