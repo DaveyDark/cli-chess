@@ -1,7 +1,48 @@
+#include <cctype>
 #include <iostream>
 #include "piece.cpp"
 
 class Board {
+private:
+  Piece* pieces[8][8];
+  bool isChecked(bool white) {
+    int king0, king1;
+    for(int i=0; i<8; i++) {
+      for(int j=0; j<8; j++) {
+        if(!this->pieces[i][j]) continue;
+        if(this->pieces[i][j]->white == white && tolower(this->pieces[i][j]->symbol) == 'k'){
+          king0 = i;
+          king1 = j;
+        }
+      }
+    }
+
+    for(int i=0; i<8; i++) {
+      for(int j=0; j<8; j++) {
+        if(!this->pieces[i][j]) continue;
+        if(this->pieces[i][j]->white != white){
+          if(this->isInRange({king0,king1}, this->pieces[i][j]->getCaptureRange({i,j}))) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  bool isInRange(std::pair<int,int> p, std::vector<std::vector<std::pair<int,int>>> range) {
+    for(const auto direction: range) {
+      for(auto pos: direction) {
+        if(pos == p) {
+          return true;
+        }
+        if(this->pieces[pos.first][pos.second]) break;
+      }
+    }
+    return false;
+  }
+
 public:
   // Escape codes constants
   const std::string WHITE_COLOR_CODE = "\033[37m";
@@ -13,47 +54,50 @@ public:
   const std::string BACKGROUND_SECONDARY_COLOR = "\033[0;38;2;0;128;0;48;2;0;128;0m";
   const std::string BACKGROUND_BORDER_COLOR = "\033[48;2;75;20;5m";
   const std::string CLEAR_SCREEN = "\033c";
+  const std::string RED_BACKGROUND = "\033[41m";
 
-  Piece* pieces[8][8];
 
   Board() {
-    for (int i = 0; i < 8; ++i) for (int j = 0; j < 8; ++j) pieces[i][j] = nullptr;
-    pieces[0][0] = new Rook(false);
-    pieces[0][1] = new Knight(false);
-    pieces[0][2] = new Bishop(false);
-    pieces[0][3] = new Queen(false);
-    pieces[0][4] = new King(false);
-    pieces[0][5] = new Bishop(false);
-    pieces[0][6] = new Knight(false);
-    pieces[0][7] = new Rook(false);
-    for (int i = 0; i < 8; i++) pieces[1][i] = new Pawn(false);
+    for (int i = 0; i < 8; ++i) for (int j = 0; j < 8; ++j) this->pieces[i][j] = nullptr;
+    this->pieces[0][0] = new Rook(false);
+    this->pieces[0][1] = new Knight(false);
+    this->pieces[0][2] = new Bishop(false);
+    this->pieces[0][3] = new Queen(false);
+    this->pieces[0][4] = new King(false);
+    this->pieces[0][5] = new Bishop(false);
+    this->pieces[0][6] = new Knight(false);
+    this->pieces[0][7] = new Rook(false);
+    for (int i = 0; i < 8; i++) this->pieces[1][i] = new Pawn(false);
 
-    pieces[7][0] = new Rook(true);
-    pieces[7][1] = new Knight(true);
-    pieces[7][2] = new Bishop(true);
-    pieces[7][3] = new Queen(true);
-    pieces[7][4] = new King(true);
-    pieces[7][5] = new Bishop(true);
-    pieces[7][6] = new Knight(true);
-    pieces[7][7] = new Rook(true);
-    for (int i = 0; i < 8; i++) pieces[6][i] = new Pawn(true);
+    this->pieces[7][0] = new Rook(true);
+    this->pieces[7][1] = new Knight(true);
+    this->pieces[7][2] = new Bishop(true);
+    this->pieces[7][3] = new Queen(true);
+    this->pieces[7][4] = new King(true);
+    this->pieces[7][5] = new Bishop(true);
+    this->pieces[7][6] = new Knight(true);
+    this->pieces[7][7] = new Rook(true);
+    for (int i = 0; i < 8; i++) this->pieces[6][i] = new Pawn(true);
   }
 
   void display() {
     std::cout << CLEAR_SCREEN << std::endl;
     std::cout << BACKGROUND_BORDER_COLOR << GRAY_TEXT_COLOR << "   a  b  c  d  e  f  g  h   " << std::endl;
+
     for(int i = 0; i < 8; i++) {
       std::cout << GRAY_TEXT_COLOR << 8 - i << " " ;
       for(int j = 0; j < 8; j++) {
         if((i+j)%2 == 0) std::cout << BACKGROUND_PRIMARY_COLOR;
         else std::cout << BACKGROUND_SECONDARY_COLOR;
-        if(pieces[i][j]) {
-          if(pieces[i][j]->white) {
+        if(this->pieces[i][j]) {
+          if(tolower(this->pieces[i][j]->symbol) == 'k' && this->isChecked(this->pieces[i][j]->white)){
+            std::cout << RED_BACKGROUND;
+          } else if(this->pieces[i][j]->white) {
             std::cout << WHITE_COLOR_CODE;
           } else {
             std::cout << BLACK_COLOR_CODE;
           }
-          std::cout << " " << pieces[i][j]->symbol << " ";
+          std::cout << " " << this->pieces[i][j]->symbol << " ";
         }
         else std::cout << "   ";
       }
@@ -81,16 +125,12 @@ public:
       ret = this->pieces[s0][s1];
       range = this->pieces[s0][s1]->getMovementRange({s0,s1});
     }
-    for(const auto direction: range) {
-      for(auto pos: direction) {
-        if(pos.first == d0 && pos.second == d1) {
-          this->pieces[d0][d1] = this->pieces[s0][s1];
-          this->pieces[s0][s1] = nullptr;
-          return ret;
-        }
-        if(this->pieces[pos.first][pos.second]) break;
-      }
+    if(this->isInRange({d0,d1}, range)) {
+      this->pieces[d0][d1] = this->pieces[s0][s1];
+      this->pieces[s0][s1] = nullptr;
+      return ret;
     }
     return nullptr;
   }
+
 };

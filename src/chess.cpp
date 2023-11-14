@@ -25,7 +25,7 @@ public:
     while(playing){
       board.display();
       if(invalid) {
-        std::cout << "\033[41m!INVALID MOVE! \033[0m" << std::endl;
+        std::cout << board.RED_BACKGROUND << "!INVALID MOVE! \033[0m" << std::endl;
         invalid = false;
       }
       std::cout << board.BLACK_BACKGROUND_COLOR << board.WHITE_COLOR_CODE;
