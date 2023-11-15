@@ -391,4 +391,15 @@ public:
     }
     return false;
   }
+
+  std::string getState() {
+    std::string state;
+    for(int i=0; i<8; i++) {
+      for(int j=0; j<8; j++) {
+        if(this->pieces[i][j]) state += this->pieces[i][j]->symbol;
+        else state += ' ';
+      }
+    }
+    return state;
+  }
 };

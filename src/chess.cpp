@@ -1,8 +1,10 @@
 #include "board.cpp"
+#include <unordered_map>
 
 class Chess {
 private:
   Board board;
+  std::unordered_map<std::string, int> stateHistory;
   bool whitesTurn = true;
   int notation = 2;
   std::vector<Piece*> capturedWhite;
@@ -23,7 +25,9 @@ public:
     bool playing = true, invalid = false;
     std::string move;
     while(playing){
-      board.display();
+      this->board.display();
+      std::string state = this->board.getState();
+      this->stateHistory[state] += 1;
       if(invalid) {
         std::cout << board.RED_BACKGROUND << "!INVALID MOVE! \033[0m" << std::endl;
         invalid = false;
@@ -43,6 +47,14 @@ public:
         std::cout << board.RED_BACKGROUND << "!DRAW! \033[0m" << std::endl;
         std::cout << "DRAW BY INSUFFICIENT MATERIAL" << std::endl;
         break;
+      }
+      for (const auto& pair : this->stateHistory) {
+        if(pair.second > 3) {
+          std::cout << board.RED_BACKGROUND << "!DRAW! \033[0m" << std::endl;
+          std::cout << "DRAW BY REPETITION" << std::endl;
+          playing = false;
+          break;
+        }
       }
       std::cout << board.BLACK_BACKGROUND_COLOR << board.WHITE_COLOR_CODE;
       for(auto p: this->capturedWhite) {
