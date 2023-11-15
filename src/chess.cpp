@@ -28,10 +28,20 @@ public:
         std::cout << board.RED_BACKGROUND << "!INVALID MOVE! \033[0m" << std::endl;
         invalid = false;
       }
-      if(this->board.isChecked(whitesTurn) && this->board.isCheckMate(whitesTurn)) {
-        std::cout << board.RED_BACKGROUND << "!CHECKMATE! \033[0m" << std::endl;
-        if(whitesTurn) std::cout << "BLACK WINS" << std::endl;
-        else std::cout << "WHITE WINS" << std::endl;
+      if(!this->board.canMove(whitesTurn)) {
+        if(this->board.isChecked(whitesTurn)) {
+          std::cout << board.RED_BACKGROUND << "!CHECKMATE! \033[0m" << std::endl;
+          if(whitesTurn) std::cout << "BLACK WINS" << std::endl;
+          else std::cout << "WHITE WINS" << std::endl;
+        } else {
+          std::cout << board.RED_BACKGROUND << "!DRAW! \033[0m" << std::endl;
+          std::cout << "DRAW BY STALEMATE" << std::endl;
+        }
+        break;
+      }
+      if(this->board.insufficientMaterial(true) && this->board.insufficientMaterial(false)) {
+        std::cout << board.RED_BACKGROUND << "!DRAW! \033[0m" << std::endl;
+        std::cout << "DRAW BY INSUFFICIENT MATERIAL" << std::endl;
         break;
       }
       std::cout << board.BLACK_BACKGROUND_COLOR << board.WHITE_COLOR_CODE;
