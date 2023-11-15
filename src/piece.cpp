@@ -28,6 +28,7 @@ public:
 class Rook: public Piece {
 public:
   Rook(bool w): Piece(w, w?'R':'r') {}
+  bool moved = false;
 
   std::vector<std::vector<std::pair<int,int>>> getRange(std::pair<int,int> pos) {
     std::vector<std::pair<int,int>> up,down,left,right;
@@ -77,6 +78,7 @@ public:
 
 class King: public Piece {
 public:
+  bool moved = false;
   King(bool w): Piece(w, w?'K':'k') {}
   std::vector<std::vector<std::pair<int, int>>> getRange(std::pair<int, int> pos) {
     std::vector<std::pair<int, int>> moves = {
@@ -96,9 +98,9 @@ public:
   std::vector<std::vector<std::pair<int,int>>> getRange(std::pair<int,int> pos) {
     std::vector<std::pair<int,int>> up,down,left,right;
 
-    for(int i = 0; i < pos.first; i++) up.push_back(std::pair(i, pos.second));
+    for(int i = pos.first-1; i >= 0; i--) up.push_back(std::pair(i, pos.second));
     for(int i = pos.first+1; i < 8; i++) down.push_back(std::pair(i, pos.second));
-    for(int i = 0; i < pos.second; i++) left.push_back(std::pair(pos.first, i));
+    for(int i = pos.second-1; i >= 0; i--) left.push_back(std::pair(pos.first, i));
     for(int i = pos.second+1; i < 8; i++) right.push_back(std::pair(pos.first, i));
 
     std::vector<std::pair<int, int>> upLeft, upRight, downLeft, downRight;

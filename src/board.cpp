@@ -141,6 +141,45 @@ public:
     std::cout << std::endl;
   }
 
+  bool canCastle(int s0, int s1, int d0, int d1, bool white) {
+    if(this->isChecked(white))return false;
+    int i,end,rk;
+    if(s1 > d1) {
+      // queenside castle
+      i = 1;
+      end = s1;
+      rk=0;
+      if(white) {
+        if(this->pieces[7][0]->symbol != 'R') return false;
+      } else {
+        if(this->pieces[0][0]->symbol != 'r') return false;
+      }
+    } else {
+      // kingside castle
+      i = s1+1;
+      end = 7;
+      rk=7;
+      if(white) {
+        if(this->pieces[7][7]->symbol != 'R') return false;
+      } else {
+        if(this->pieces[0][7]->symbol != 'r') return false;
+      }
+    }
+    for(; i<end; i++) {
+      if(this->pieces[s0][i]) return false;
+      this->pieces[s0][i] = this->pieces[s0][s1];
+      this->pieces[s0][s1] = nullptr;
+      bool check = isChecked(white);
+      this->pieces[s0][s1] = this->pieces[s0][i];
+      this->pieces[s0][i] = nullptr;
+      if(check) return false;
+    }
+    Rook* rook = (Rook*)this->pieces[s0][rk];
+    King* king = (King*)this->pieces[s0][s1];
+    if(rook->moved || king->moved) return false;
+    return true;
+  }
+
   bool tryMove(int s0, int s1, int d0, int d1, bool white) {
     if(!this->pieces[s0][s1]) return false;
     if(this->pieces[s0][s1]->white != white) return false;
@@ -154,6 +193,11 @@ public:
           }
         }
       }
+    }
+
+    if(tolower(this->pieces[s0][s1]->symbol) == 'k' && s0 == d0 && abs(s1-d1) == 2) {
+      // castling attempt
+      return this->canCastle(s0, s1, d0, d1, white);
     }
 
     std::vector<std::vector<std::pair<int,int>>> range;
@@ -208,6 +252,21 @@ public:
         this->promote({s0,s1});
       }
 
+
+      if(tolower(this->pieces[s0][s1]->symbol) == 'k' && s0 == d0 && abs(s1-d1) == 2) {
+        //castling
+        this->pieces[d0][d1] = this->pieces[s0][s1];
+        if(s1 > d1) {
+          // queenside castle
+          this->pieces[s0][d1+1] = this->pieces[s0][0];
+          this->pieces[s0][0] = nullptr;
+        } else {
+          // kingside castle
+          this->pieces[s0][d1-1] = this->pieces[s0][7];
+          this->pieces[s0][7] = nullptr;
+        }
+      }
+
       for(int i=0; i<8; i++) {
         for(int j=0; j<8; j++) {
           if(this->pieces[i][j] && tolower(this->pieces[i][j]->symbol) == 'p') {
@@ -217,6 +276,15 @@ public:
             }
           }
         }
+      }
+
+      if(tolower(this->pieces[s0][s1]->symbol) == 'r') {
+        Rook* rook = (Rook*)this->pieces[s0][s1];
+        if(!rook->moved) rook->moved = true;
+      }
+      if(tolower(this->pieces[s0][s1]->symbol) == 'k') {
+        King* king = (King*)this->pieces[s0][s1];
+        if(!king->moved) king->moved = true;
       }
       
       if(this->pieces[d0][d1]) {
