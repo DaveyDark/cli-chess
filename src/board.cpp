@@ -6,7 +6,6 @@
 class Board {
 private:
   const int insufficient[4][6] = {{0,0,0,0,1,0},{0,1,0,0,1,0},{0,0,1,0,1,0},{0,2,0,0,1,0}};
-  Piece* pieces[8][8];
   std::pair<int,int> locatePiece(char symbol, bool white) {
     std::pair<int,int> *pos;
     for(int i=0; i<8; i++) {
@@ -33,47 +32,45 @@ private:
     return false;
   }
 
-  void promote(std::pair<int,int> pos) {
+  void promote(std::pair<int,int> pos, char promotion) {
     if(tolower(this->pieces[pos.first][pos.second]->symbol) != 'p') return;
     if(this->pieces[pos.first][pos.second]->white && pos.first != 1) return;
     else if(!this->pieces[pos.first][pos.second]->white && pos.first != 6) return;
 
-    char choice = 'a';
+    char choice = promotion;
     Piece *newPiece;
-    while(choice != 'q' && choice != 'r' && choice != 'b' && choice != 'n') {
+    while(choice != 'Q' && choice != 'R' && choice != 'B' && choice != 'N') {
       std::cout << "Enter piece to promote pawn to:" << std::endl;
-      std::cout << "q - Queen" << std::endl;
-      std::cout << "r - Rook" << std::endl;
-      std::cout << "b - Bishop" << std::endl;
-      std::cout << "n - Knight" << std::endl;
+      std::cout << "Q - Queen" << std::endl;
+      std::cout << "R - Rook" << std::endl;
+      std::cout << "B - Bishop" << std::endl;
+      std::cout << "N - Knight" << std::endl;
       std::cout << ">> ";
       std::cin >> choice;
-
+      if(choice != 'Q' && choice != 'R' && choice != 'B' && choice != 'N') std::cout << "INVALID CHOICE" << std::endl;
+    }
       switch(choice) {
-        case 'q':
+        case 'Q':
           newPiece = new Queen(this->pieces[pos.first][pos.second]->white);
           delete this->pieces[pos.first][pos.second];
           this->pieces[pos.first][pos.second] = newPiece;
           break;
-        case 'r':
+        case 'R':
           newPiece = new Rook(this->pieces[pos.first][pos.second]->white);
           delete this->pieces[pos.first][pos.second];
           this->pieces[pos.first][pos.second] = newPiece;
           break;
-        case 'b':
+        case 'B':
           newPiece = new Bishop(this->pieces[pos.first][pos.second]->white);
           delete this->pieces[pos.first][pos.second];
           this->pieces[pos.first][pos.second] = newPiece;
           break;
-        case 'n':
+        case 'N':
           newPiece = new Knight(this->pieces[pos.first][pos.second]->white);
           delete this->pieces[pos.first][pos.second];
           this->pieces[pos.first][pos.second] = newPiece;
           break;
-        default:
-          std::cout << "Invalid choice" << std::endl;
       }
-    }
   }
 
   bool tryMove(int s0, int s1, int d0, int d1, bool white) {
@@ -164,6 +161,7 @@ private:
   }
 
 public:
+  Piece* pieces[8][8];
   // Escape codes constants
   const std::string WHITE_COLOR_CODE = "\033[37m";
   const std::string BLACK_COLOR_CODE = "\033[30m";
@@ -186,7 +184,7 @@ public:
     this->pieces[0][4] = new King(false);
     this->pieces[0][5] = new Bishop(false);
     this->pieces[0][6] = new Knight(false);
-    this->pieces[1][0] = new Rook(false);
+    this->pieces[0][7] = new Rook(false);
     for (int i = 0; i < 8; i++) this->pieces[1][i] = new Pawn(false);
 
     this->pieces[7][0] = new Rook(true);
@@ -229,7 +227,7 @@ public:
     std::cout << std::endl;
   }
 
-  Piece* move(int s0, int s1, int d0, int d1, bool white) {
+  Piece* move(int s0, int s1, int d0, int d1, bool white, char promotion = 'x') {
     if (this->tryMove(s0, s1, d0, d1, white)) {
       if(tolower(this->pieces[s0][s1]->symbol) == 'p') {
         Pawn* pawn = (Pawn*)this->pieces[s0][s1];
@@ -238,7 +236,7 @@ public:
           pawn->enPassantAble = true;
         }
 
-        if(!this->pieces[d0][d1] && tolower(this->pieces[s0][d1]->symbol) == 'p' && s0 != d0) {
+        if(!this->pieces[d0][d1] && s1 != d1 && tolower(this->pieces[s0][d1]->symbol) == 'p' && s0 != d0) {
           // en passant
           Pawn* pwn = (Pawn*)this->pieces[s0][d1];
           if(pwn->white != white && pwn->enPassantAble) {
@@ -250,7 +248,7 @@ public:
           }
         }
 
-        this->promote({s0,s1});
+        this->promote({s0,s1}, promotion);
       }
 
 
