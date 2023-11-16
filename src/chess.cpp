@@ -219,7 +219,7 @@ public:
           if(this->board.move(s0,i,d0,d1,white)) return true;
         }
       }
-    } else if (std::regex_match(inp, CN_CASTLE_KINGSIDE)) {
+    } else if (std::regex_match(inp, CN_CASTLE_KINGSIDE) || std::regex_match(inp, CN_CASTLE_QUEENSIDE)) {
       // Kingside Castle
       int s0,s1;
       for (int i=0; i<8; i++) {
@@ -231,21 +231,7 @@ public:
           }
         }
       }
-      int d1 = s1+2;
-      return this->board.move(s0,s1,s0,d1,white);
-    } else if (std::regex_match(inp, CN_CASTLE_QUEENSIDE)) {
-      // Queenside Castle
-      int s0,s1;
-      for (int i=0; i<8; i++) {
-        for (int j=0; j<8; j++) {
-          if(this->board.pieces[i][j] && this->board.pieces[i][j]->white == white && toupper(this->board.pieces[i][j]->symbol) == 'K'){
-            s0 = i;
-            s1 = j;
-            break;
-          }
-        }
-      }
-      int d1 = s1-2;
+      int d1 = (inp.length() == 3)?s1+2:s1-2;
       return this->board.move(s0,s1,s0,d1,white);
     } else return false;
 
