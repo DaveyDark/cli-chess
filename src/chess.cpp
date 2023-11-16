@@ -128,7 +128,12 @@ public:
         tolower(this->board.pieces[sourceRank][sourceFile]->symbol) != 'p' || 
         this->board.pieces[sourceRank][sourceFile]->white != white)
           return false;
-      return this->board.move(sourceRank,sourceFile,target.first,target.second,white);
+      Piece* cap = this->board.move(sourceRank,sourceFile,target.first,target.second,white);
+      if(cap) {
+        if(white) this->capturedBlack.push_back(cap);
+        else this->capturedWhite.push_back(cap);
+      }
+      return cap;
     } else if (std::regex_match(inp, CN_PAWN_CAPTURE_PROMOTE)) {
       // Pawn capture + promotion
       std::pair<int,int> target = {8 - (inp[3]-'0'), inp[2] - 'a'};
@@ -140,7 +145,12 @@ public:
         tolower(this->board.pieces[sourceRank][sourceFile]->symbol) != 'p' || 
         this->board.pieces[sourceRank][sourceFile]->white != white)
           return false;
-      return this->board.move(sourceRank,sourceFile,target.first,target.second,white, promotion);
+      Piece* cap =  this->board.move(sourceRank,sourceFile,target.first,target.second,white, promotion);
+      if(cap) {
+        if(white) this->capturedBlack.push_back(cap);
+        else this->capturedWhite.push_back(cap);
+      }
+      return cap;
     } else if (std::regex_match(inp, CN_PAWN_PROMOTION)) {
       // Pawn Promotion
       int file = inp[0] - 'a';
@@ -195,7 +205,12 @@ public:
       for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
           if(this->board.pieces[i][j] && this->board.pieces[i][j]->white == white && toupper(this->board.pieces[i][j]->symbol) == piece){
-            if(this->board.move(i,j,d0,d1,white)) return true;
+            Piece* cap = this->board.move(i,j,d0,d1,white);
+            if(cap){
+              if(white) this->capturedBlack.push_back(cap);
+              else this->capturedWhite.push_back(cap);
+              return true;
+            }
           }
         }
       }
@@ -208,7 +223,12 @@ public:
       char piece = inp[0];
       for (int i=0; i<8; i++) {
         if(this->board.pieces[i][s1] && this->board.pieces[i][s1]->white == white && toupper(this->board.pieces[i][s1]->symbol) == piece){
-          if(this->board.move(i,s1,d0,d1,white)) return true;
+          Piece* cap = this->board.move(i,s1,d0,d1,white);
+          if(cap) {
+            if(white) this->capturedBlack.push_back(cap);
+            else this->capturedWhite.push_back(cap);
+            return true;
+          }
         }
       }
     } else if (std::regex_match(inp, CN_PIECE_CAPTURE_AMBIG_RANK)) {
@@ -220,7 +240,12 @@ public:
       char piece = inp[0];
       for (int i=0; i<8; i++) {
         if(this->board.pieces[s0][i] && this->board.pieces[s0][i]->white == white && toupper(this->board.pieces[s0][i]->symbol) == piece){
-          if(this->board.move(s0,i,d0,d1,white)) return true;
+          Piece* cap = this->board.move(s0,i,d0,d1,white);
+          if(cap) {
+            if(white) this->capturedBlack.push_back(cap);
+            else this->capturedWhite.push_back(cap);
+            return true;
+          }
         }
       }
     } else if (std::regex_match(inp, CN_CASTLE_KINGSIDE) || std::regex_match(inp, CN_CASTLE_QUEENSIDE)) {
@@ -238,7 +263,6 @@ public:
       int d1 = (inp.length() == 3)?s1+2:s1-2;
       return this->board.move(s0,s1,s0,d1,white);
     } else return false;
-
     return false;
   }
 
