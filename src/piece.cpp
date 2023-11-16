@@ -1,6 +1,15 @@
 #include <vector>
 #include <utility>
 
+// This class is the base for all pieces on the board. It stores the symbol of the piece and
+// the color(weather it is white or not)
+// The constructor initializes these values
+//
+// Also there are virtual functions defined to get the Movement Range and Capturing Range of a piece
+// Since for most pieces these are the same, the default implementation of these functions calls another
+// helper function getRange() which is pure virtual
+//
+// Lastly there is a function validateMoves() that takes a range of moves and removes invalid moves from it
 class Piece {
 public:
   char symbol;
@@ -25,6 +34,8 @@ public:
   }
 };
 
+// The Rook class additionally keeps track of weather it has moved yet or not
+// Rook's implementation of range checks all 4 directions from the given position and adds them to the range
 class Rook: public Piece {
 public:
   Rook(bool w): Piece(w, w?'R':'r') {}
@@ -42,6 +53,8 @@ public:
   }
 };
 
+// Knight's implementation of range checks all of the given coordinates the knight can move to
+// and then validates them with validateMoves() and returns them
 class Knight: public Piece {
 public:
   Knight(bool w): Piece(w, w?'N':'n') {}
@@ -57,6 +70,7 @@ public:
   }
 };
 
+// Bishop's implementation of range checks all of the diagonal directions from the given position
 class Bishop: public Piece {
 public:
   Bishop(bool w): Piece(w, w?'B':'b') {}
@@ -76,6 +90,9 @@ public:
   }
 };
 
+// King's implementation of range checks all of the given coordinates the knight can move to
+// and then validates them with validateMoves() and returns them
+// It also tracks weather it has moved yet or not
 class King: public Piece {
 public:
   bool moved = false;
@@ -91,6 +108,7 @@ public:
   }
 };
 
+// Queen's implementation of range checks all 8 directions and returns it
 class Queen: public Piece {
 public:
   Queen(bool w): Piece(w, w?'Q':'q') {}
@@ -118,6 +136,10 @@ public:
   }
 };
 
+// Pawn has different capture range and movement range so their functions are different
+// If the pawn has moved, it can move 1 square forward for 2 squares forward if it hasn't
+// And it can capture diagonally
+// Additionally it tracks weather an En Passant is possible on the pawn in current turn
 class Pawn: public Piece {
 public:
   bool moved = false;

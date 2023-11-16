@@ -3,9 +3,15 @@
 #include <iostream>
 #include "piece.cpp"
 
+// Board class defines the chessboard and controls most operations on it
+// The board is stores in the form of a 8x8 matrix of Piece pointers
+// If there is not piece at a coordinate, the array will have a nullptr there
 class Board {
 private:
+  // Array to store the various conditions for Draw by Insufficient Material to occur
   const int insufficient[4][6] = {{0,0,0,0,1,0},{0,1,0,0,1,0},{0,0,1,0,1,0},{0,2,0,0,1,0}};
+
+  // Function to locate a piece on the board
   std::pair<int,int> locatePiece(char symbol, bool white) {
     std::pair<int,int> *pos;
     for(int i=0; i<8; i++) {
@@ -20,6 +26,7 @@ private:
     return {-1,-1};
   }
 
+  // Function that checks weather a given position is in the given range
   bool isInRange(std::pair<int,int> p, std::vector<std::vector<std::pair<int,int>>> range) {
     for(const auto direction: range) {
       for(auto pos: direction) {
@@ -32,6 +39,7 @@ private:
     return false;
   }
 
+  // Function to promote a pawn
   void promote(std::pair<int,int> pos, char promotion) {
     if(tolower(this->pieces[pos.first][pos.second]->symbol) != 'p') return;
     if(this->pieces[pos.first][pos.second]->white && pos.first != 1) return;
@@ -73,10 +81,12 @@ private:
       }
   }
 
+  // Function to try a move and see if it is valid without modifying the board
   bool tryMove(int s0, int s1, int d0, int d1, bool white) {
     if(!this->pieces[s0][s1]) return false;
     if(this->pieces[s0][s1]->white != white) return false;
 
+    // Handle En Passant Attempt
     if(tolower(this->pieces[s0][s1]->symbol) == 'p') {
       if((this->pieces[s0][s1]->white && s0 == 3) || (!this->pieces[s0][s1]->white && s0 == 4)) {
         if(tolower(this->pieces[s0][d1]->symbol) == 'p') {
@@ -88,8 +98,8 @@ private:
       }
     }
 
+    // Handle Castling attempt
     if(tolower(this->pieces[s0][s1]->symbol) == 'k' && s0 == d0 && abs(s1-d1) == 2) {
-      // castling attempt
       return this->canCastle(s0, s1, d0, d1, white);
     }
 
@@ -108,6 +118,7 @@ private:
       ret = this->pieces[s0][s1];
       range = this->pieces[s0][s1]->getMovementRange({s0,s1});
     }
+    // Check if the move is legal
     if(this->isInRange({d0,d1}, range)) {
       this->pieces[d0][d1] = this->pieces[s0][s1];
       this->pieces[s0][s1] = nullptr;
@@ -121,6 +132,7 @@ private:
     return false;
   }
 
+  // Checks if a castle is possible
   bool canCastle(int s0, int s1, int d0, int d1, bool white) {
     if(this->isChecked(white))return false;
     int i,end,rk;
@@ -145,6 +157,7 @@ private:
         if(this->pieces[0][7]->symbol != 'r') return false;
       }
     }
+    // Loop and see if an intermediate position is in check
     for(; i<end; i++) {
       if(this->pieces[s0][i]) return false;
       this->pieces[s0][i] = this->pieces[s0][s1];
@@ -161,6 +174,7 @@ private:
   }
 
 public:
+  // Board Array
   Piece* pieces[8][8];
   // Escape codes constants
   const std::string WHITE_COLOR_CODE = "\033[37m";
@@ -174,7 +188,7 @@ public:
   const std::string CLEAR_SCREEN = "\033c";
   const std::string RED_BACKGROUND = "\033[41m";
 
-
+  // Init board with the approriate pieces at appropriate positions
   Board() {
     for (int i = 0; i < 8; ++i) for (int j = 0; j < 8; ++j) this->pieces[i][j] = nullptr;
     this->pieces[0][0] = new Rook(false);
@@ -198,6 +212,7 @@ public:
     for (int i = 0; i < 8; i++) this->pieces[6][i] = new Pawn(true);
   }
 
+  // Print the board
   void display() {
     std::cout << CLEAR_SCREEN << std::endl;
     std::cout << BACKGROUND_BORDER_COLOR << GRAY_TEXT_COLOR << "   a  b  c  d  e  f  g  h   " << std::endl;
@@ -227,17 +242,20 @@ public:
     std::cout << std::endl;
   }
 
+  // Function to move a piece from (s0,s1) to (d0,d1)
   Piece* move(int s0, int s1, int d0, int d1, bool white, char promotion = 'x') {
     if (this->tryMove(s0, s1, d0, d1, white)) {
+      // Move is legal, we can perform it
       if(tolower(this->pieces[s0][s1]->symbol) == 'p') {
         Pawn* pawn = (Pawn*)this->pieces[s0][s1];
+        // Update En Passant and moved state of the pawn
         if(!pawn->moved) {
           pawn->moved = true;
           pawn->enPassantAble = true;
         }
 
         if(!this->pieces[d0][d1] && s1 != d1 && tolower(this->pieces[s0][d1]->symbol) == 'p' && s0 != d0) {
-          // en passant
+          // En passant
           Pawn* pwn = (Pawn*)this->pieces[s0][d1];
           if(pwn->white != white && pwn->enPassantAble) {
             Piece* ret = this->pieces[s0][d1];
@@ -248,10 +266,12 @@ public:
           }
         }
 
+        // Check and handle pawn promotion
         this->promote({s0,s1}, promotion);
       }
 
 
+      // Check and handle Castling
       if(tolower(this->pieces[s0][s1]->symbol) == 'k' && s0 == d0 && abs(s1-d1) == 2) {
         //castling
         this->pieces[d0][d1] = this->pieces[s0][s1];
@@ -266,6 +286,7 @@ public:
         }
       }
 
+      // Update En Passant states for pawns
       for(int i=0; i<8; i++) {
         for(int j=0; j<8; j++) {
           if(this->pieces[i][j] && tolower(this->pieces[i][j]->symbol) == 'p') {
@@ -277,6 +298,7 @@ public:
         }
       }
 
+      // Update moved states for pawn and rook
       if(tolower(this->pieces[s0][s1]->symbol) == 'r') {
         Rook* rook = (Rook*)this->pieces[s0][s1];
         if(!rook->moved) rook->moved = true;
@@ -286,6 +308,7 @@ public:
         if(!king->moved) king->moved = true;
       }
       
+      // Perform move
       if(this->pieces[d0][d1]) {
         //capture
         Piece* ret = this->pieces[d0][d1];
@@ -301,6 +324,7 @@ public:
     return nullptr;
   }
 
+  // Function to check if the king of given color is in check
   bool isChecked(bool white) {
     std::pair<int,int> king = this->locatePiece('k',white);
 
@@ -318,7 +342,9 @@ public:
     return false;
   }
 
+  // Function to check if a legal move is possible
   bool canMove(bool white) {
+    // We loop over all pieces of given color then try to perform all possible moves for them and see if they are legel
     for(int i=0; i<8; i++) {
       for(int j=0; j<8; j++) {
         if(this->pieces[i][j] && this->pieces[i][j]->white == white) {
@@ -347,6 +373,7 @@ public:
     return false;
   }
 
+  // Function to check draw by insufficient material
   bool insufficientMaterial(bool white) {
     // 0 = rook
     // 1 = knight
@@ -354,6 +381,7 @@ public:
     // 3 = king
     // 4 = queen
     // 5 = pawn
+    // We will count the pieces then see if it matches the couts for a draw
     int counts[6] = {0,0,0,0,0,0};
     for(int i=0; i<8; i++) {
       for(int j=0; j<8; j++) {
@@ -390,6 +418,7 @@ public:
     return false;
   }
 
+  // Returns the state of the board in the form of a string
   std::string getState() {
     std::string state;
     for(int i=0; i<8; i++) {

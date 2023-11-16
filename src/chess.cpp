@@ -4,11 +4,11 @@
 
 class Chess {
 private:
-  Board board;
-  std::unordered_map<std::string, int> stateHistory;
+  Board board; // Instance of board
+  std::unordered_map<std::string, int> stateHistory; // Stores history of board to check draw by repetition
   bool whitesTurn = true;
   int notation = 0;
-  std::vector<Piece*> capturedWhite;
+  std::vector<Piece*> capturedWhite; // stores captured pieces
   std::vector<Piece*> capturedBlack;
 
   // Chess Notation Regex
@@ -27,6 +27,7 @@ private:
   
 public:
   void play() {
+    // Prompt for input method
     while(notation < 1 || notation > 2){
       std::cout << "Please choose an input method: " << std::endl;
       std::cout << "1) Chess notation (ex:- 'Ng4' moves knight to g4)" << std::endl;
@@ -40,6 +41,7 @@ public:
 
     bool playing = true, invalid = false;
     std::string move;
+    // Game Loop
     while(playing){
       this->board.display();
       std::string state = this->board.getState();
@@ -96,6 +98,8 @@ public:
       else whitesTurn = !whitesTurn;
     }
   }
+
+  // Processes chess notation input
   bool processChessNotation(std::string inp, bool white) {
     if(std::regex_match(inp, CN_PAWN_MOVE)) {
       // Pawn move
@@ -237,6 +241,8 @@ public:
 
     return false;
   }
+
+  // Processes input in Algebraic Notation
   bool processAlgebraicNotation(std::string inp, bool white) {
     if(inp.length() != 4) return false;
     int s1 = inp[0] - 'a';
