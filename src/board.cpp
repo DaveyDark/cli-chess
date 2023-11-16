@@ -87,7 +87,7 @@ private:
     if(this->pieces[s0][s1]->white != white) return false;
 
     // Handle En Passant Attempt
-    if(tolower(this->pieces[s0][s1]->symbol) == 'p') {
+    if(tolower(this->pieces[s0][s1]->symbol) == 'p' && !this->pieces[d0][d1] && this->pieces[s0][d1]) {
       if((this->pieces[s0][s1]->white && s0 == 3) || (!this->pieces[s0][s1]->white && s0 == 4)) {
         if(tolower(this->pieces[s0][d1]->symbol) == 'p') {
           Pawn* pawn = (Pawn*)this->pieces[s0][d1];
