@@ -44,11 +44,12 @@ public:
     // Game Loop
     while(playing){
       this->board.display();
-      std::string state = this->board.getState();
-      this->stateHistory[state] += 1;
       if(invalid) {
         std::cout << board.RED_BACKGROUND << "!INVALID MOVE! \033[0m" << std::endl;
         invalid = false;
+      } else {
+        std::string state = this->board.getState();
+        this->stateHistory[state] += 1;
       }
       if(!this->board.canMove(whitesTurn)) {
         if(this->board.isChecked(whitesTurn)) {
@@ -74,6 +75,7 @@ public:
           break;
         }
       }
+      if(!playing)break;
       std::cout << board.BLACK_BACKGROUND_COLOR << board.WHITE_COLOR_CODE;
       for(auto p: this->capturedWhite) {
         std::cout << " [" << p->symbol << "] ";
